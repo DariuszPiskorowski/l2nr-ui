@@ -1,0 +1,17 @@
+{
+  "$schema": "../schemas/ui-node-manifest.schema.json",
+  "schemaVersion": 1,
+  "name": "radiant-dial",
+  "label": "Radiant Dial",
+  "component": "src/components/ThermostatDial.tsx",
+  "dashboard": {
+    "width": 6,
+    "height": 6
+  },
+  "input": {
+    "source": "msg.payload"
+  },
+  "output": {
+    "target": "msg.payload"
+  }
+}

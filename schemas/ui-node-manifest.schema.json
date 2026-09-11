@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/DariuszPiskorowski/l2nr-ui/schemas/ui-node-manifest.schema.json",
+  "title": "L2NR UI node manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "name",
+    "label",
+    "component",
+    "dashboard",
+    "input",
+    "output"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "label": { "type": "string", "minLength": 1 },
+    "component": { "type": "string", "minLength": 1 },
+    "dashboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source"],
+      "properties": { "source": { "const": "msg.payload" } }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target"],
+      "properties": { "target": { "const": "msg.payload" } }
+    }
+  }
+}

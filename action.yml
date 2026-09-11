@@ -1,0 +1,39 @@
+name: L2NR UI inspect
+description: Inspect a React UI project before converting it to a Node-RED Dashboard 2 node
+
+inputs:
+  source:
+    description: Project directory to inspect
+    required: false
+    default: .
+  output:
+    description: JSON analysis file
+    required: false
+    default: l2nr-analysis.json
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js 24
+      uses: actions/setup-node@v7
+      with:
+        node-version: 24
+        cache: npm
+        cache-dependency-path: ${{ github.action_path }}/package-lock.json
+
+    - name: Install l2nr-ui
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci
+
+    - name: Build l2nr-ui
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm run build
+
+    - name: Inspect source project
+      shell: bash
+      run: >-
+        node "${{ github.action_path }}/dist/cli.js"
+        inspect "${{ inputs.source }}"
+        --output "${{ inputs.output }}"

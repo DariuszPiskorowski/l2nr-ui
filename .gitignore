@@ -1,0 +1,6 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+l2nr-analysis.json
+

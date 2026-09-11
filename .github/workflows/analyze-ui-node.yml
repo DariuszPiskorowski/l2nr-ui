@@ -1,0 +1,32 @@
+name: Analyze UI node
+
+on:
+  workflow_call:
+    inputs:
+      artifact_name:
+        description: Name of the generated analysis artifact
+        required: false
+        type: string
+        default: l2nr-analysis
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source project
+        uses: actions/checkout@v7
+
+      - name: Analyze source project
+        uses: DariuszPiskorowski/l2nr-ui@main
+        with:
+          source: .
+          output: l2nr-analysis.json
+
+      - name: Upload analysis
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: l2nr-analysis.json

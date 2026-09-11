@@ -1,0 +1,27 @@
+{
+  "name": "@dariuszpiskorowski/l2nr-ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "l2nr-ui": "dist/cli.js"
+  },
+  "exports": "./dist/index.js",
+  "files": [
+    "dist",
+    "schemas",
+    "action.yml"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
