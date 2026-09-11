@@ -134,7 +134,7 @@ function renderPackageJson(
         "react-dom": "19.2.0",
         tailwindcss: "4.2.1",
         "tw-animate-css": "1.3.4",
-        vite: "8.2.0"
+        vite: "7.1.12"
       }
     },
     null,
