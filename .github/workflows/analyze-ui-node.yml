@@ -39,3 +39,4 @@ jobs:
             .l2nr-output/l2nr-analysis.json
             .l2nr-output/*.tgz
           if-no-files-found: warn
+          include-hidden-files: true
