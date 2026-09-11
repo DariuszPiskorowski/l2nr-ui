@@ -1,15 +1,27 @@
-name: L2NR UI inspect
-description: Inspect a React UI project before converting it to a Node-RED Dashboard 2 node
+name: L2NR UI
+description: Inspect or build a Lovable React UI as a Node-RED Dashboard 2 node
 
 inputs:
+  command:
+    description: Run inspect or build
+    required: false
+    default: inspect
   source:
-    description: Project directory to inspect
+    description: Source project directory
     required: false
     default: .
   output:
-    description: JSON analysis file
+    description: Output directory
     required: false
-    default: l2nr-analysis.json
+    default: .l2nr-output
+
+outputs:
+  report:
+    description: Generated analysis report
+    value: ${{ steps.paths.outputs.report }}
+  package:
+    description: Generated npm package archive, when command is build
+    value: ${{ steps.package.outputs.archive }}
 
 runs:
   using: composite
@@ -29,9 +41,43 @@ runs:
       working-directory: ${{ github.action_path }}
       run: npm run build
 
+    - name: Prepare output
+      id: paths
+      shell: bash
+      env:
+        OUTPUT_DIR: ${{ inputs.output }}
+      run: |
+        mkdir -p "$OUTPUT_DIR"
+        OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd)"
+        echo "L2NR_OUTPUT_DIR=$OUTPUT_DIR" >> "$GITHUB_ENV"
+        echo "report=$OUTPUT_DIR/l2nr-analysis.json" >> "$GITHUB_OUTPUT"
+
     - name: Inspect source project
       shell: bash
+      env:
+        SOURCE_DIR: ${{ inputs.source }}
+      run: |
+        node "${{ github.action_path }}/dist/cli.js" inspect "$SOURCE_DIR" \
+          --output "$L2NR_OUTPUT_DIR/l2nr-analysis.json"
+
+    - name: Install source dependencies
+      if: ${{ inputs.command == 'build' }}
+      shell: bash
+      env:
+        SOURCE_DIR: ${{ inputs.source }}
       run: >-
-        node "${{ github.action_path }}/dist/cli.js"
-        inspect "${{ inputs.source }}"
-        --output "${{ inputs.output }}"
+        npm install --prefix "$SOURCE_DIR" --package-lock=false
+        --ignore-scripts --no-audit --no-fund
+
+    - name: Generate and package Dashboard widget
+      if: ${{ inputs.command == 'build' }}
+      id: package
+      shell: bash
+      env:
+        SOURCE_DIR: ${{ inputs.source }}
+      run: |
+        PACKAGE_DIR="$(node "${{ github.action_path }}/dist/cli.js" build "$SOURCE_DIR" --output "$L2NR_OUTPUT_DIR")"
+        npm install --prefix "$PACKAGE_DIR" --package-lock=false --ignore-scripts --no-audit --no-fund
+        npm run build --prefix "$PACKAGE_DIR"
+        ARCHIVE="$(cd "$PACKAGE_DIR" && npm pack --pack-destination "$L2NR_OUTPUT_DIR" | tail -n 1)"
+        echo "archive=$L2NR_OUTPUT_DIR/$ARCHIVE" >> "$GITHUB_OUTPUT"

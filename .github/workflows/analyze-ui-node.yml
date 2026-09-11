@@ -1,32 +1,41 @@
-name: Analyze UI node
+name: L2NR UI node
 
 on:
   workflow_call:
     inputs:
-      artifact_name:
-        description: Name of the generated analysis artifact
+      command:
+        description: Inspect the project or build a display-only node
         required: false
         type: string
-        default: l2nr-analysis
+        default: inspect
+      artifact_name:
+        description: Name of the generated artifact
+        required: false
+        type: string
+        default: l2nr-ui
 
 permissions:
   contents: read
 
 jobs:
-  analyze:
+  l2nr-ui:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source project
         uses: actions/checkout@v7
 
-      - name: Analyze source project
+      - name: Process source project
         uses: DariuszPiskorowski/l2nr-ui@main
         with:
+          command: ${{ inputs.command }}
           source: .
-          output: l2nr-analysis.json
+          output: .l2nr-output
 
-      - name: Upload analysis
+      - name: Upload result
         uses: actions/upload-artifact@v7
         with:
           name: ${{ inputs.artifact_name }}
-          path: l2nr-analysis.json
+          path: |
+            .l2nr-output/l2nr-analysis.json
+            .l2nr-output/*.tgz
+          if-no-files-found: warn

@@ -37,11 +37,12 @@ jobs:
       - name: Test local action
         uses: ./
         with:
+          command: inspect
           source: tests/fixture
-          output: l2nr-analysis.json
+          output: .l2nr-test
 
       - name: Upload analysis
         uses: actions/upload-artifact@v7
         with:
           name: l2nr-analysis
-          path: l2nr-analysis.json
+          path: .l2nr-test/l2nr-analysis.json
