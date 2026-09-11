@@ -1,5 +1,6 @@
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { assertUiNodeSpec } from "../spec/ui-node-spec.js";
 
 const SOURCE_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
 const IGNORED_DIRECTORIES = new Set([".git", "dist", "node_modules", ".output"]);
@@ -13,6 +14,15 @@ export interface ProjectReport {
   transports: string[];
   browserApis: string[];
   sourceFilesScanned: number;
+  manifest: {
+    path: "l2nr-ui.manifest.json";
+    name: string;
+    label: string;
+    component: string;
+    mode: "interactive" | "display";
+    input: "msg.payload";
+    output: "msg.payload" | null;
+  } | null;
 }
 
 interface PackageJson {
@@ -49,7 +59,52 @@ export async function scanProject(projectDirectory: string): Promise<ProjectRepo
     frameworks,
     transports: [...transports].sort(),
     browserApis: [...browserApis].sort(),
-    sourceFilesScanned: sourceFiles.length
+    sourceFilesScanned: sourceFiles.length,
+    manifest: await loadManifest(projectRoot)
+  };
+}
+
+async function loadManifest(projectRoot: string): Promise<ProjectReport["manifest"]> {
+  const manifestName = "l2nr-ui.manifest.json" as const;
+  const manifestPath = path.join(projectRoot, manifestName);
+  let content: string;
+
+  try {
+    content = await readFile(manifestPath, "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw new Error("Cannot read " + manifestPath, { cause: error });
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch (error) {
+    throw new Error("Invalid JSON in " + manifestPath, { cause: error });
+  }
+
+  assertUiNodeSpec(parsed);
+
+  const componentPath = path.resolve(projectRoot, parsed.component);
+  const relativeComponent = path.relative(projectRoot, componentPath);
+  if (relativeComponent.startsWith("..") || path.isAbsolute(relativeComponent)) {
+    throw new Error("Manifest component must be inside the project");
+  }
+
+  try {
+    await readFile(componentPath, "utf8");
+  } catch (error) {
+    throw new Error("Manifest component does not exist: " + parsed.component, { cause: error });
+  }
+
+  return {
+    path: manifestName,
+    name: parsed.name,
+    label: parsed.label,
+    component: parsed.component,
+    mode: parsed.output === null ? "display" : "interactive",
+    input: parsed.input.source,
+    output: parsed.output?.target ?? null
   };
 }
 
@@ -60,13 +115,13 @@ async function loadPackageJson(projectRoot: string): Promise<PackageJson> {
   try {
     content = await readFile(packagePath, "utf8");
   } catch (error) {
-    throw new Error(`Cannot read ${packagePath}`, { cause: error });
+    throw new Error("Cannot read " + packagePath, { cause: error });
   }
 
   try {
     return JSON.parse(content) as PackageJson;
   } catch (error) {
-    throw new Error(`Invalid JSON in ${packagePath}`, { cause: error });
+    throw new Error("Invalid JSON in " + packagePath, { cause: error });
   }
 }
 

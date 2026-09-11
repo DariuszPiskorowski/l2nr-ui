@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "name": "fixture-ui",
+  "label": "Fixture UI",
+  "component": "src/widget.tsx",
+  "dashboard": {
+    "width": 6,
+    "height": 6
+  },
+  "input": {
+    "source": "msg.payload"
+  },
+  "output": null
+}

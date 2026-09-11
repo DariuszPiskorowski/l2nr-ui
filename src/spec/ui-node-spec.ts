@@ -14,7 +14,7 @@ export interface UiNodeSpec {
   };
   output: {
     target: "msg.payload";
-  };
+  } | null;
 }
 
 export function assertUiNodeSpec(value: unknown): asserts value is UiNodeSpec {
@@ -24,12 +24,12 @@ export function assertUiNodeSpec(value: unknown): asserts value is UiNodeSpec {
 
   const candidate = value as Partial<UiNodeSpec>;
   if (candidate.schemaVersion !== UI_NODE_SPEC_VERSION) {
-    throw new TypeError(`Unsupported schemaVersion: ${String(candidate.schemaVersion)}`);
+    throw new TypeError("Unsupported schemaVersion: " + String(candidate.schemaVersion));
   }
 
   for (const key of ["name", "label", "component"] as const) {
     if (typeof candidate[key] !== "string" || candidate[key].trim() === "") {
-      throw new TypeError(`${key} must be a non-empty string`);
+      throw new TypeError(key + " must be a non-empty string");
     }
   }
 
@@ -47,7 +47,7 @@ export function assertUiNodeSpec(value: unknown): asserts value is UiNodeSpec {
     throw new TypeError('input.source must be "msg.payload"');
   }
 
-  if (candidate.output?.target !== "msg.payload") {
-    throw new TypeError('output.target must be "msg.payload"');
+  if (candidate.output !== null && candidate.output?.target !== "msg.payload") {
+    throw new TypeError('output must be null or target "msg.payload"');
   }
 }

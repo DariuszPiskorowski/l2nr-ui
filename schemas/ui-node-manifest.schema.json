@@ -34,10 +34,15 @@
       "properties": { "source": { "const": "msg.payload" } }
     },
     "output": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["target"],
-      "properties": { "target": { "const": "msg.payload" } }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target"],
+          "properties": { "target": { "const": "msg.payload" } }
+        },
+        { "type": "null" }
+      ]
     }
   }
 }
