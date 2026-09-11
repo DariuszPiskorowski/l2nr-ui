@@ -31,6 +31,9 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: Prepare action fixture
+        run: cp tests/fixture/package.template.json tests/fixture/package.json
+
       - name: Test local action
         uses: ./
         with:
