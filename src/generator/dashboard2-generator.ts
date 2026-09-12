@@ -99,7 +99,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.3.0",
+      version: "0.4.0",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -174,6 +174,7 @@ function renderEditor(nodeType: string, spec: UiNodeSpec): string {
   const display = spec.display ?? {};
   const valueProperty = display.valueProperty ?? "payload";
   const caption = display.caption ?? "";
+  const showCaption = display.showCaption ?? true;
   const componentLabel = display.label ?? "";
   const min = display.min ?? 0;
   const max = display.max ?? 100;
@@ -191,6 +192,7 @@ function renderEditor(nodeType: string, spec: UiNodeSpec): string {
     "      height: { value: " + String(spec.dashboard.height) + " },",
     "      valueProperty: { value: " + quote(valueProperty) + ", required: true },",
     "      caption: { value: " + quote(caption) + " },",
+    "      showCaption: { value: " + String(showCaption) + " },",
     "      componentLabel: { value: " + quote(componentLabel) + " },",
     "      min: { value: " + String(min) + ", required: true, validate: RED.validators.number() },",
     "      max: { value: " + String(max) + ", required: true, validate: RED.validators.number() }",
@@ -230,6 +232,10 @@ function renderEditor(nodeType: string, spec: UiNodeSpec): string {
     "  <div class=\"form-row\">",
     "    <label for=\"node-input-caption\"><i class=\"fa fa-comment\"></i> Caption</label>",
     "    <input type=\"text\" id=\"node-input-caption\" placeholder=\"Auto from value property\">",
+    "  </div>",
+    "  <div class=\"form-row\">",
+    "    <label for=\"node-input-showCaption\"><i class=\"fa fa-eye\"></i> Show caption</label>",
+    "    <input type=\"checkbox\" id=\"node-input-showCaption\" style=\"width:auto;vertical-align:top;\">",
     "  </div>",
     "  <div class=\"form-row\">",
     "    <label for=\"node-input-componentLabel\"><i class=\"fa fa-font\"></i> Gauge label</label>",
@@ -272,6 +278,7 @@ function renderVueWrapper(
   const display = spec.display ?? {};
   const defaultValueProperty = display.valueProperty ?? "payload";
   const defaultCaption = display.caption ?? "";
+  const defaultShowCaption = display.showCaption ?? true;
   const defaultLabel = display.label ?? "";
   const defaultMin = display.min ?? 0;
   const defaultMax = display.max ?? 100;
@@ -382,7 +389,12 @@ function renderVueWrapper(
     "      const configuredCaption = typeof this.props.caption === \"string\"",
     "        ? this.props.caption",
     "        : " + quote(defaultCaption) + ";",
-    "      const caption = configuredCaption.trim() || deriveCaption(valueProperty);",
+    "      const showCaption = typeof this.props.showCaption === \"boolean\"",
+    "        ? this.props.showCaption",
+    "        : " + String(defaultShowCaption) + ";",
+    "      const caption = showCaption",
+    "        ? configuredCaption.trim() || deriveCaption(valueProperty)",
+    "        : \"\";",
     "      const componentLabel = typeof this.props.componentLabel === \"string\" && this.props.componentLabel.trim()",
     "        ? this.props.componentLabel.trim()",
     "        : " + quote(defaultLabel) + ";",
