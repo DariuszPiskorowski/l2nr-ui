@@ -103,7 +103,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.1.0",
+      version: "0.1.1",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -169,7 +169,7 @@ function renderRuntime(nodeType: string): string {
     "  }",
     "",
     "  RED.nodes.registerType(" + quote(nodeType) + ", DisplayNode);",
-    "});"
+    "};"
   );
 }
 

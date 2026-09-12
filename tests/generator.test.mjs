@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -32,10 +33,12 @@ test("generates a display-only Dashboard 2 package around a React component", as
   const generatedPackage = JSON.parse(
     await readFile(path.join(result.packageDirectory, "package.json"), "utf8")
   );
-  const runtime = await readFile(
-    path.join(result.packageDirectory, "nodes", "ui-sample-gauge.js"),
-    "utf8"
+  const runtimePath = path.join(
+    result.packageDirectory,
+    "nodes",
+    "ui-sample-gauge.js"
   );
+  const runtime = await readFile(runtimePath, "utf8");
   const editor = await readFile(
     path.join(result.packageDirectory, "nodes", "ui-sample-gauge.html"),
     "utf8"
@@ -45,7 +48,13 @@ test("generates a display-only Dashboard 2 package around a React component", as
     "utf8"
   );
 
+  const syntaxCheck = spawnSync(process.execPath, ["--check", runtimePath], {
+    encoding: "utf8"
+  });
+
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
+  assert.equal(generatedPackage.version, "0.1.1");
+  assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
     generatedPackage["node-red-dashboard-2"].widgets.UiSampleGauge.output,
