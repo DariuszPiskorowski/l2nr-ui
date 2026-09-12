@@ -103,7 +103,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.1.3",
+      version: "0.1.4",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -285,7 +285,7 @@ function renderVueWrapper(
     "    return { latestMessage: null, reactRoot: null };",
     "  },",
     "  created() {",
-    "    this.$dataTracker(this.id, this.onInput, this.onLoad, this);",
+    "    this.$dataTracker(this.id, this.onInput, this.onLoad);",
     "  },",
     "  mounted() {",
     "    const shadow = this.$refs.host.attachShadow({ mode: \"open\" });",
