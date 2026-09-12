@@ -68,7 +68,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.2.0");
+  assert.equal(generatedPackage.version, "0.3.0");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
@@ -101,5 +101,47 @@ test("generates a display-only Dashboard 2 package around a React component", as
   assert.match(
     viteConfig,
     /"process\.env\.NODE_ENV": JSON\.stringify\("production"\)/
+  );
+});
+
+
+test("generates an interactive Dashboard 2 package with a payload output", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "l2nr-interactive-"));
+  const output = path.join(root, ".l2nr-output");
+  await mkdir(path.join(root, "src"), { recursive: true });
+  await writeFile(
+    path.join(root, "src", "Dial.tsx"),
+    "export default function Dial({ payload, onChange }) { return <button onClick={() => onChange({ setpoint: 22 })}>{payload?.setpoint}</button>; }"
+  );
+  await writeFile(
+    path.join(root, "l2nr-ui.manifest.json"),
+    JSON.stringify({
+      schemaVersion: 1,
+      name: "sample-dial",
+      label: "Sample Dial",
+      component: "src/Dial.tsx",
+      dashboard: { width: 6, height: 6 },
+      input: { source: "msg.payload" },
+      display: { valueProperty: "payload.setpoint", caption: "THERMOSTAT", min: 5, max: 32 },
+      output: { target: "msg.payload" }
+    })
+  );
+
+  const result = await generateDashboard2Package(root, output);
+  const editor = await readFile(
+    path.join(result.packageDirectory, "nodes", "ui-sample-dial.html"),
+    "utf8"
+  );
+  const wrapper = await readFile(
+    path.join(result.packageDirectory, "ui", "components", "UiSampleDial.vue"),
+    "utf8"
+  );
+
+  assert.match(editor, /outputs: 1/);
+  assert.match(wrapper, /sourceProps\.onChange = this\.sendPayload/);
+  assert.match(wrapper, /this\.latestMessage\.payload/);
+  assert.match(
+    wrapper,
+    /this\.\$socket\.emit\("widget-action", this\.id, \{ payload \}\)/
   );
 });
