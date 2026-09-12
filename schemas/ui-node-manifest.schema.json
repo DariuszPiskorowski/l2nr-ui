@@ -14,35 +14,91 @@
     "output"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "name": { "type": "string", "minLength": 1 },
-    "label": { "type": "string", "minLength": 1 },
-    "component": { "type": "string", "minLength": 1 },
+    "schemaVersion": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "component": {
+      "type": "string",
+      "minLength": 1
+    },
     "dashboard": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["width", "height"],
+      "required": [
+        "width",
+        "height"
+      ],
       "properties": {
-        "width": { "type": "integer", "minimum": 1 },
-        "height": { "type": "integer", "minimum": 1 }
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        }
       }
     },
     "input": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["source"],
-      "properties": { "source": { "const": "msg.payload" } }
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "const": "msg.payload"
+        }
+      }
     },
     "output": {
       "oneOf": [
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["target"],
-          "properties": { "target": { "const": "msg.payload" } }
+          "required": [
+            "target"
+          ],
+          "properties": {
+            "target": {
+              "const": "msg.payload"
+            }
+          }
         },
-        { "type": "null" }
+        {
+          "type": "null"
+        }
       ]
+    },
+    "display": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "valueProperty": {
+          "type": "string",
+          "minLength": 1
+        },
+        "caption": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        }
+      }
     }
   }
 }
