@@ -31,6 +31,15 @@ jobs:
           source: .
           output: .l2nr-output
 
+      - name: Verify browser bundle
+        if: inputs.command == 'build'
+        shell: bash
+        run: |
+          if grep -R --include='*.js' -n 'process\.env\.NODE_ENV' .l2nr-output; then
+            echo "Browser bundle still contains process.env.NODE_ENV"
+            exit 1
+          fi
+
       - name: Upload result
         uses: actions/upload-artifact@v7
         with:
