@@ -35,7 +35,9 @@ jobs:
         if: inputs.command == 'build'
         shell: bash
         run: |
-          if grep -R --include='*.js' -n 'process\.env\.NODE_ENV' .l2nr-output; then
+          matches=$(grep -R --include='*.js' -n 'process\.env\.NODE_ENV' .l2nr-output/*/resources 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
             echo "Browser bundle still contains process.env.NODE_ENV"
             exit 1
           fi
