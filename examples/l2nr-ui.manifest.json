@@ -13,5 +13,12 @@
   },
   "output": {
     "target": "msg.payload"
+  },
+  "display": {
+    "valueProperty": "payload.ambient",
+    "caption": "Ambient Temperature",
+    "label": "TEMP °C",
+    "min": 0,
+    "max": 50
   }
 }
