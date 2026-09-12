@@ -61,7 +61,7 @@ export async function generateDashboard2Package(
     ),
     writeFile(
       path.join(packageDirectory, "vite.config.mjs"),
-      renderViteConfig(nodeType, widgetName, projectRoot),
+      renderViteConfig(nodeType, projectRoot),
       "utf8"
     )
   ]);
@@ -103,7 +103,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.1.2",
+      version: "0.1.3",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -231,7 +231,7 @@ function renderUiEntry(widgetName: string): string {
   return lines(
     "import component from \"./components/" + widgetName + ".vue\";",
     "",
-    "export default component;"
+    "export { default as " + widgetName + " } from \"./components/" + widgetName + ".vue\";"
   );
 }
 
@@ -331,7 +331,7 @@ function renderVueWrapper(
   );
 }
 
-function renderViteConfig(nodeType: string, widgetName: string, projectRoot: string): string {
+function renderViteConfig(nodeType: string, projectRoot: string): string {
   return lines(
     "import tailwindcss from \"@tailwindcss/vite\";",
     "import react from \"@vitejs/plugin-react\";",
@@ -354,7 +354,7 @@ function renderViteConfig(nodeType: string, widgetName: string, projectRoot: str
     "    emptyOutDir: true,",
     "    lib: {",
     "      entry: path.resolve(rootDir, \"ui/index.js\"),",
-    "      name: " + quote(widgetName) + ",",
+    "      name: " + quote(nodeType) + ",",
     "      formats: [\"umd\"],",
     "      fileName: () => " + quote(nodeType + ".umd.js"),
     "    },",
