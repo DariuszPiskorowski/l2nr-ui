@@ -53,12 +53,12 @@ test("generates a display-only Dashboard 2 package around a React component", as
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.1.1");
+  assert.equal(generatedPackage.version, "0.1.2");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
     generatedPackage["node-red-dashboard-2"].widgets.UiSampleGauge.output,
-    "resources/ui-sample-gauge.umd.js"
+    "ui-sample-gauge.umd.js"
   );
   assert.match(runtime, /stores\.data\.save/);
   assert.doesNotMatch(runtime, /node\.send/);
