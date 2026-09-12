@@ -103,7 +103,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.1.1",
+      version: "0.1.2",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -117,7 +117,7 @@ function renderPackageJson(
         version: "1.0.0",
         widgets: {
           [widgetName]: {
-            output: "resources/" + nodeType + ".umd.js",
+            output: nodeType + ".umd.js",
             component: widgetName
           }
         }
