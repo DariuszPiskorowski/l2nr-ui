@@ -25,6 +25,13 @@ test("generates a display-only Dashboard 2 package around a React component", as
       component: "src/Gauge.tsx",
       dashboard: { width: 6, height: 5 },
       input: { source: "msg.payload" },
+      display: {
+        valueProperty: "payload.ambient",
+        caption: "Ambient Temperature",
+        label: "TEMP °C",
+        min: -10,
+        max: 50
+      },
       output: null
     })
   );
@@ -61,7 +68,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.1.5");
+  assert.equal(generatedPackage.version, "0.2.0");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
@@ -71,7 +78,16 @@ test("generates a display-only Dashboard 2 package around a React component", as
   assert.match(runtime, /stores\.data\.save/);
   assert.doesNotMatch(runtime, /node\.send/);
   assert.match(editor, /outputs: 0/);
+  assert.match(editor, /node-input-valueProperty/);
+  assert.match(editor, /node-input-caption/);
+  assert.match(editor, /node-input-componentLabel/);
+  assert.match(editor, /valueProperty: \{ value: "payload\.ambient"/);
   assert.match(wrapper, /React\.createElement\(SourceComponent/);
+  assert.match(wrapper, /readValue\(this\.latestMessage, valueProperty\)/);
+  assert.match(wrapper, /deriveCaption\(valueProperty\)/);
+  assert.match(wrapper, /Ambient Temperature/);
+  assert.match(wrapper, /TEMP °C/);
+  assert.match(wrapper, /l2nr-caption/);
   assert.match(wrapper, /attachShadow/);
   assert.match(wrapper, /\?inline/);
   assert.match(wrapper, /\$dataTracker\(this\.id, this\.onInput, this\.onLoad\);/);
