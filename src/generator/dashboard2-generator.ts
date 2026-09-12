@@ -116,7 +116,7 @@ function renderPackageJson(
       "node-red-dashboard-2": {
         version: "1.0.0",
         widgets: {
-          [widgetName]: {
+          [nodeType]: {
             output: nodeType + ".umd.js",
             component: widgetName
           }
