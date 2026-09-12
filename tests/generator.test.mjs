@@ -47,13 +47,21 @@ test("generates a display-only Dashboard 2 package around a React component", as
     path.join(result.packageDirectory, "ui", "components", "UiSampleGauge.vue"),
     "utf8"
   );
+  const uiEntry = await readFile(
+    path.join(result.packageDirectory, "ui", "index.js"),
+    "utf8"
+  );
+  const viteConfig = await readFile(
+    path.join(result.packageDirectory, "vite.config.mjs"),
+    "utf8"
+  );
 
   const syntaxCheck = spawnSync(process.execPath, ["--check", runtimePath], {
     encoding: "utf8"
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.1.2");
+  assert.equal(generatedPackage.version, "0.1.3");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
@@ -66,4 +74,10 @@ test("generates a display-only Dashboard 2 package around a React component", as
   assert.match(wrapper, /React\.createElement\(SourceComponent/);
   assert.match(wrapper, /attachShadow/);
   assert.match(wrapper, /\?inline/);
+  assert.match(
+    uiEntry,
+    /export \{ default as UiSampleGauge \} from ".\/components\/UiSampleGauge\.vue";/
+  );
+  assert.doesNotMatch(uiEntry, /export default/);
+  assert.match(viteConfig, /name: "ui-sample-gauge"/);
 });
