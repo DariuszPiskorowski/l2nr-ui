@@ -15,10 +15,6 @@ export async function generateDashboard2Package(
   const projectRoot = path.resolve(projectDirectory);
   const spec = await readManifest(projectRoot);
 
-  if (spec.output !== null) {
-    throw new Error("Interactive UI nodes are not supported by the display generator yet");
-  }
-
   const packageName = "node-red-dashboard-2-" + spec.name;
   const nodeType = "ui-" + spec.name;
   const widgetName = toPascalCase(nodeType);
@@ -103,7 +99,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.2.0",
+      version: "0.3.0",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -200,7 +196,7 @@ function renderEditor(nodeType: string, spec: UiNodeSpec): string {
     "      max: { value: " + String(max) + ", required: true, validate: RED.validators.number() }",
     "    },",
     "    inputs: 1,",
-    "    outputs: 0,",
+    "    outputs: " + (spec.output === null ? "0" : "1") + ",",
     "    icon: \"font-awesome/fa-dashboard\",",
     "    paletteLabel: " + quote(spec.label) + ",",
     "    label: function () { return this.name || " + quote(spec.label) + "; },",
@@ -279,6 +275,7 @@ function renderVueWrapper(
   const defaultLabel = display.label ?? "";
   const defaultMin = display.min ?? 0;
   const defaultMax = display.max ?? 100;
+  const interactive = spec.output !== null;
   const styleLine = stylesImport
     ? "import sourceCss from " + quote(stylesImport) + ";"
     : "const sourceCss = \"\";";
@@ -374,6 +371,9 @@ function renderVueWrapper(
     "      this.latestMessage = message;",
     "      this.renderReact();",
     "    },",
+    interactive
+      ? "    sendPayload(payload) {\n      this.$socket.emit(\"widget-action\", this.id, { payload });\n    },"
+      : "",
     "    renderReact() {",
     "      if (!this.reactRoot) return;",
     "      const valueProperty = typeof this.props.valueProperty === \"string\" && this.props.valueProperty.trim()",
@@ -389,12 +389,20 @@ function renderVueWrapper(
     "      const min = numberSetting(this.props.min, " + String(defaultMin) + ");",
     "      const configuredMax = numberSetting(this.props.max, " + String(defaultMax) + ");",
     "      const max = configuredMax > min ? configuredMax : min + 1;",
-    "      const component = React.createElement(SourceComponent, {",
+    "      const sourceProps = {",
     "        value: readValue(this.latestMessage, valueProperty),",
+    "        payload: this.latestMessage && typeof this.latestMessage === \"object\"",
+    "          ? this.latestMessage.payload",
+    "          : undefined,",
+    "        message: this.latestMessage,",
     "        min,",
     "        max,",
     "        label: componentLabel",
-    "      });",
+    "      };",
+    interactive
+      ? "      sourceProps.onChange = this.sendPayload;"
+      : "",
+    "      const component = React.createElement(SourceComponent, sourceProps);",
     "      this.reactRoot.render(",
     "        React.createElement(\"div\", { className: \"l2nr-display\" }, [",
     "          React.createElement(\"div\", { className: \"l2nr-component\", key: \"component\" }, component),",
