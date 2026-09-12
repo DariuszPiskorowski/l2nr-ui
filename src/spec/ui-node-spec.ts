@@ -3,6 +3,7 @@ export const UI_NODE_SPEC_VERSION = 1 as const;
 export interface UiDisplaySpec {
   valueProperty?: string;
   caption?: string;
+  showCaption?: boolean;
   label?: string;
   min?: number;
   max?: number;
@@ -70,6 +71,13 @@ export function assertUiNodeSpec(value: unknown): asserts value is UiNodeSpec {
 
     if (candidate.display.valueProperty !== undefined && candidate.display.valueProperty.trim() === "") {
       throw new TypeError("display.valueProperty must not be empty");
+    }
+
+    if (
+      candidate.display.showCaption !== undefined &&
+      typeof candidate.display.showCaption !== "boolean"
+    ) {
+      throw new TypeError("display.showCaption must be a boolean");
     }
 
     for (const key of ["min", "max"] as const) {
