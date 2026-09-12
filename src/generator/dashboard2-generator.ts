@@ -56,7 +56,7 @@ export async function generateDashboard2Package(
     ),
     writeFile(
       vueFile,
-      renderVueWrapper(widgetName, componentImport, stylesImport, spec.name),
+      renderVueWrapper(widgetName, componentImport, stylesImport, spec),
       "utf8"
     ),
     writeFile(
@@ -103,7 +103,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.1.5",
+      version: "0.2.0",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -237,8 +237,14 @@ function renderVueWrapper(
   widgetName: string,
   componentImport: string,
   stylesImport: string | null,
-  manifestName: string
+  spec: UiNodeSpec
 ): string {
+  const display = spec.display ?? {};
+  const defaultValueProperty = display.valueProperty ?? "payload";
+  const defaultCaption = display.caption ?? "";
+  const defaultLabel = display.label ?? "";
+  const defaultMin = display.min ?? 0;
+  const defaultMax = display.max ?? 100;
   const styleLine = stylesImport
     ? "import sourceCss from " + quote(stylesImport) + ";"
     : "const sourceCss = \"\";";
@@ -296,7 +302,7 @@ function renderVueWrapper(
     "      \"\\n.l2nr-react-root>*{max-width:100%;max-height:100%}\" +",
     "      \"\\n.l2nr-react-root svg{max-width:100%;max-height:100%;height:auto}\";",
     "    const root = document.createElement(\"div\");",
-    "    root.className = \"l2nr-react-root l2nr-" + escapeJavaScriptFragment(manifestName) + "\";",
+    "    root.className = \"l2nr-react-root l2nr-" + escapeJavaScriptFragment(spec.name) + "\";",
     "    shadow.append(style, root);",
     "    this.reactRoot = createRoot(root);",
     "    this.renderReact();",
