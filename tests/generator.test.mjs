@@ -57,7 +57,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
-    generatedPackage["node-red-dashboard-2"].widgets.UiSampleGauge.output,
+    generatedPackage["node-red-dashboard-2"].widgets["ui-sample-gauge"].output,
     "ui-sample-gauge.umd.js"
   );
   assert.match(runtime, /stores\.data\.save/);
