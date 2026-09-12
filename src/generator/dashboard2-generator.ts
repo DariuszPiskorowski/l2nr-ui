@@ -103,7 +103,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.1.4",
+      version: "0.1.5",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -343,6 +343,9 @@ function renderViteConfig(nodeType: string, projectRoot: string): string {
     "",
     "export default defineConfig({",
     "  plugins: [tailwindcss(), vue(), react()],",
+    "  define: {",
+    "    \"process.env.NODE_ENV\": JSON.stringify(\"production\")",
+    "  },",
     "  resolve: {",
     "    alias: { \"@\": path.join(sourceRoot, \"src\") },",
     "    dedupe: [\"react\", \"react-dom\"]",
