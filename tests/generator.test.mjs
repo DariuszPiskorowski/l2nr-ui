@@ -68,7 +68,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.3.0");
+  assert.equal(generatedPackage.version, "0.4.0");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
@@ -80,6 +80,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   assert.match(editor, /outputs: 0/);
   assert.match(editor, /node-input-valueProperty/);
   assert.match(editor, /node-input-caption/);
+  assert.match(editor, /node-input-showCaption/);
   assert.match(editor, /node-input-componentLabel/);
   assert.match(editor, /valueProperty: \{ value: "payload\.ambient"/);
   assert.match(wrapper, /React\.createElement\(SourceComponent/);
