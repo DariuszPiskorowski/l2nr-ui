@@ -229,8 +229,6 @@ function renderEditor(nodeType: string, spec: UiNodeSpec): string {
 
 function renderUiEntry(widgetName: string): string {
   return lines(
-    "import component from \"./components/" + widgetName + ".vue\";",
-    "",
     "export { default as " + widgetName + " } from \"./components/" + widgetName + ".vue\";"
   );
 }
