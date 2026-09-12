@@ -61,7 +61,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.1.4");
+  assert.equal(generatedPackage.version, "0.1.5");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
@@ -82,4 +82,8 @@ test("generates a display-only Dashboard 2 package around a React component", as
   );
   assert.doesNotMatch(uiEntry, /export default/);
   assert.match(viteConfig, /name: "ui-sample-gauge"/);
+  assert.match(
+    viteConfig,
+    /"process\.env\.NODE_ENV": JSON\.stringify\("production"\)/
+  );
 });
