@@ -68,7 +68,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.4.0");
+  assert.equal(generatedPackage.version, "0.5.0");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
@@ -129,6 +129,10 @@ test("generates an interactive Dashboard 2 package with a payload output", async
   );
 
   const result = await generateDashboard2Package(root, output);
+  const runtime = await readFile(
+    path.join(result.packageDirectory, "nodes", "ui-sample-dial.js"),
+    "utf8"
+  );
   const editor = await readFile(
     path.join(result.packageDirectory, "nodes", "ui-sample-dial.html"),
     "utf8"
@@ -139,8 +143,11 @@ test("generates an interactive Dashboard 2 package with a payload output", async
   );
 
   assert.match(editor, /outputs: 1/);
+  assert.match(runtime, /onAction: true/);
   assert.match(wrapper, /sourceProps\.onChange = this\.sendPayload/);
   assert.match(wrapper, /this\.latestMessage\.payload/);
+  assert.match(wrapper, /nodeId: this\.id/);
+  assert.match(wrapper, /storageKey: "l2nr-ui:" \+ this\.id/);
   assert.match(
     wrapper,
     /this\.\$socket\.emit\("widget-action", this\.id, \{ payload \}\)/
