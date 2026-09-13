@@ -39,7 +39,7 @@ export async function generateDashboard2Package(
       renderPackageJson(packageName, nodeType, widgetName),
       "utf8"
     ),
-    writeFile(path.join(nodesDirectory, nodeType + ".js"), renderRuntime(nodeType), "utf8"),
+    writeFile(path.join(nodesDirectory, nodeType + ".js"), renderRuntime(nodeType, spec), "utf8"),
     writeFile(
       path.join(nodesDirectory, nodeType + ".html"),
       renderEditor(nodeType, spec),
@@ -99,7 +99,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.4.0",
+      version: "0.5.0",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -122,6 +122,9 @@ function renderPackageJson(
         vue: "3.5.42",
         vuex: "4.1.0"
       },
+      peerDependencies: {
+        "@flowfuse/node-red-dashboard": ">=1.31.0 <2"
+      },
       devDependencies: {
         "@tailwindcss/vite": "4.2.1",
         "@vitejs/plugin-react": "5.2.0",
@@ -138,7 +141,7 @@ function renderPackageJson(
   ) + "\n";
 }
 
-function renderRuntime(nodeType: string): string {
+function renderRuntime(nodeType: string, spec: UiNodeSpec): string {
   return lines(
     "\"use strict\";",
     "",
@@ -155,6 +158,7 @@ function renderRuntime(nodeType: string): string {
     "",
     "    const base = group.getBase();",
     "    const events = {",
+    spec.output === null ? "" : "      onAction: true,",
     "      onInput: function (msg, send, done) {",
     "        base.stores.data.save(base, node, msg);",
     "        if (done) done();",
@@ -409,7 +413,9 @@ function renderVueWrapper(
     "        message: this.latestMessage,",
     "        min,",
     "        max,",
-    "        label: componentLabel",
+    "        label: componentLabel,",
+    "        nodeId: this.id,",
+    "        storageKey: \"l2nr-ui:\" + this.id",
     "      };",
     interactive
       ? "      sourceProps.onChange = this.sendPayload;"
