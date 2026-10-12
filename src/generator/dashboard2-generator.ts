@@ -99,7 +99,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.5.0",
+      version: "0.5.1",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -341,7 +341,9 @@ function renderVueWrapper(
     "",
     "export default {",
     "  name: " + quote(widgetName) + ",",
-    "  inject: [\"$dataTracker\"],",
+    interactive
+      ? "  inject: [\"$dataTracker\", \"$socket\"],"
+      : "  inject: [\"$dataTracker\"],",
     "  props: {",
     "    id: { type: String, required: true },",
     "    props: { type: Object, default: () => ({}) },",
@@ -518,3 +520,4 @@ async function exists(file: string): Promise<boolean> {
     return false;
   }
 }
+
