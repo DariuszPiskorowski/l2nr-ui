@@ -1,78 +1,80 @@
 # L2NR UI
-### Interfejs z Lovable jako widget Node-RED Dashboard 2
+### Turn a Lovable interface into a Node-RED Dashboard 2 widget
 
-**L2NR UI** pozwala wykorzystać wybrany komponent React z projektu Lovable
-jako instalowalny widget Node-RED Dashboard 2. Zachowujesz własny wygląd
-interfejsu, a dane i komendy przekazujesz przez wiadomości Node-RED.
+**L2NR UI** packages a selected React component from a Lovable project
+as an installable Node-RED Dashboard 2 widget. Bring your custom interface
+into Node-RED and exchange data and commands through Node-RED messages.
 
 <table>
   <tr>
-    <th width="50%">Przed konwersją</th>
-    <th width="50%">Po konwersji — dane live</th>
+    <th width="50%">Before conversion</th>
+    <th width="50%">After conversion — live data</th>
   </tr>
   <tr>
-    <td><img src="docs/images/radiant-dial-before.png" alt="Radiant Dial przed konwersją — oryginalny interfejs bez odebranych danych" width="100%"></td>
-    <td><img src="docs/images/radiant-dial-after.png" alt="Radiant Dial po konwersji do Node-RED Dashboard 2 — widget z danymi live ze sterownika pieca" width="100%"></td>
+    <td><img src="docs/images/radiant-dial-before.png" alt="Radiant Dial before conversion: the original interface without incoming data" width="100%"></td>
+    <td><img src="docs/images/radiant-dial-after.png" alt="Radiant Dial after conversion to Node-RED Dashboard 2: a working widget displaying live heating controller data" width="100%"></td>
   </tr>
   <tr>
-    <td>Oryginalny interfejs aplikacji.</td>
-    <td>Widget Node-RED Dashboard 2 odbierający rzeczywiste dane ze sterownika.</td>
+    <td>The original application interface.</td>
+    <td>The Node-RED Dashboard 2 widget receiving live controller data.</td>
   </tr>
 </table>
 
-## Co robi konwerter?
+## What does the converter do?
 
-- Analizuje projekt i wskazany komponent React.
-- Odczytuje konfigurację widgetu z pliku `l2nr-ui.manifest.json`.
-- Generuje node Dashboard 2 wraz z mostem pomiędzy interfejsem React a wiadomościami Node-RED.
-- W GitHub Actions buduje frontend i tworzy paczkę instalacyjną `.tgz`.
+- Inspects the project and the selected React component.
+- Reads the widget configuration from `l2nr-ui.manifest.json`.
+- Generates a Dashboard 2 node with a bridge between the React interface and Node-RED messages.
+- Builds the frontend and creates an installable `.tgz` package through GitHub Actions.
 
-Komponent musi obsługiwać opisany niżej kontrakt. Konwerter nie przenosi
-automatycznie dowolnej logiki aplikacji, routingu ani połączeń z usługami.
-Obsługę danych, ustawień i zdarzeń użytkownika należy przygotować w komponencie.
+The component must implement the contract described below. The converter does
+not automatically migrate arbitrary application logic, routing, or service
+connections. Data handling, settings, and user interactions must be implemented
+in the component.
 
-## Przykład: termostat Radiant Dial
+## Example: Radiant Dial thermostat
 
-[Radiant Dial](https://github.com/DariuszPiskorowski/radiant-dial) jest pierwszym
-sprawdzonym przykładem integracji. Wspólny panel i ustawienia służą zarówno
-aplikacji samodzielnej, jak i widgetowi Node-RED.
+[Radiant Dial](https://github.com/DariuszPiskorowski/radiant-dial) is the first
+verified integration. The standalone application and the Node-RED widget share
+the same panel and settings components.
 
-| Kierunek | Topik | Zawartość |
+| Direction | Topic | Contents |
 | --- | --- | --- |
-| Sterownik → widget | `Heating/Control/state` | Stan sterownika, odczyty, nastawa, korekta AI i tryb |
-| Widget → sterownik | `Heating/Control/set` | Komenda użytkownika w `msg.payload` |
+| Controller → widget | `Heating/Control/state` | Controller state, sensor readings, setpoint, AI correction, and mode |
+| Widget → controller | `Heating/Control/set` | A user command in `msg.payload` |
 
-W wersji widgetu **połączenie MQTT obsługują zewnętrzne nody MQTT In i MQTT Out**.
-Termostat nie potrzebuje własnego klienta ani danych logowania do brokera.
-Topiki można zmieniać w jego Ustawieniach; zmiana topiku wejściowego w UI
-nie zmienia subskrypcji zewnętrznego noda MQTT In. MQTT Out powinien korzystać
-z `msg.topic`.
+In the widget version, **external MQTT In and MQTT Out nodes handle the MQTT connection**.
+The thermostat does not need its own MQTT client or broker credentials.
+Topics can be changed in its Settings panel. Changing the input topic in the UI
+does not change the external MQTT In node's subscription. MQTT Out should use
+`msg.topic`.
 
-Wersja paczki **0.5.3**:
-- odbiera stan jako obiekt lub tekst JSON i filtruje topik wejściowy;
-- pokazuje `effective_setpoint`, czyli temperaturę po korekcie AI;
-- zmienia bazowy `setpoint` przyciskami ±0,5°C;
-- nie wysyła komendy zwrotnej przy samym odebraniu stanu;
-- zapisuje ustawienia topików osobno dla widgetu w danej przeglądarce.
+Package version **0.5.3**:
 
-Integrację sprawdzono z **Node-RED 5.0.7 i Dashboard 1.33.0**, bezpośrednio
-oraz w iframe o wysokości 650 px. Działanie poprawki korekty AI potwierdzono
-również na Raspberry Pi użytkownika.
+- Accepts state as an object or JSON text and filters the input topic.
+- Displays `effective_setpoint`: the target temperature after AI correction.
+- Adjusts the base `setpoint` using ±0.5°C buttons.
+- Does not emit a command simply because an incoming state message was received.
+- Stores topic settings separately for each widget in the current browser.
 
-## Kontrakt komponentu
+The integration has been tested with **Node-RED 5.0.7 and Dashboard 1.33.0**,
+both directly and inside a 650 px iframe. The AI correction display fix has
+also been confirmed on the user's Raspberry Pi.
 
-Wrapper przekazuje do komponentu:
+## Component contract
 
-| Właściwość | Przeznaczenie |
+The wrapper passes these properties to the component:
+
+| Property | Purpose |
 | --- | --- |
-| `message` | Wiadomość Node-RED, w tym `topic` i `payload` |
-| `payload` | Dane wejściowe |
-| `inputTopic`, `outputTopic` | Domyślne topiki z manifestu |
-| `nodeId` | Identyfikator widgetu |
-| `storageKey` | Klucz do zapisu ustawień danego widgetu |
-| `onChange` | Callback wysyłający komendę z interfejsu |
+| `message` | The Node-RED message, including `topic` and `payload` |
+| `payload` | Input data |
+| `inputTopic`, `outputTopic` | Default topics from the manifest |
+| `nodeId` | Widget identifier |
+| `storageKey` | Storage key for this widget's settings |
+| `onChange` | Callback for sending a command from the interface |
 
-Przykład wysłania komendy:
+Example command:
 
 ```tsx
 onChange(
@@ -81,7 +83,7 @@ onChange(
 );
 ```
 
-Wynik na wyjściu noda:
+The node outputs:
 
 ```json
 {
@@ -93,14 +95,14 @@ Wynik na wyjściu noda:
 }
 ```
 
-Pominięcie drugiego argumentu wykorzystuje `output.topic` z manifestu.
-Most zachowuje topik podczas obsługi zdarzenia Dashboard.
-Filtrowanie wejściowego topiku oraz panel ustawień są odpowiedzialnością komponentu.
+Omitting the second argument uses `output.topic` from the manifest.
+The bridge preserves the topic through Dashboard's event handler.
+Input topic filtering and the settings panel are the component's responsibility.
 
-## Budowanie w GitHub Actions
+## Building with GitHub Actions
 
-W repozytorium aplikacji, zawierającym manifest i komponent zgodny z kontraktem,
-można użyć akcji konwertera:
+Use the converter action in an application repository containing the manifest
+and a component that implements the contract:
 
 ```yaml
 - uses: actions/checkout@v7
@@ -113,17 +115,17 @@ można użyć akcji konwertera:
     output: .l2nr-output
 ```
 
-Ścieżkę do gotowego archiwum zwraca `steps.convert.outputs.package`.
-Dla kontrolowanych wydań warto przypiąć akcję do konkretnego commita.
+The generated archive path is available as `steps.convert.outputs.package`.
+For controlled releases, pin the action to a specific commit.
 
-W Radiant Dial workflow
-[`l2nr-ui.yml`](https://github.com/DariuszPiskorowski/radiant-dial/blob/main/.github/workflows/l2nr-ui.yml)
-dodatkowo rozpakowuje paczkę, uruchamia ją w testowym Node-RED i sprawdza
-rzeczywiste wyjście widgetu w Chromium przed udostępnieniem artefaktu.
+Radiant Dial's
+[`l2nr-ui.yml` workflow](https://github.com/DariuszPiskorowski/radiant-dial/blob/main/.github/workflows/l2nr-ui.yml)
+also extracts the package, runs it in a test Node-RED instance, and verifies
+the widget's actual output in Chromium before uploading the artifact.
 
-## Rozwój konwertera
+## Developing the converter
 
-Wymagany Node.js 24 lub nowszy.
+Requires Node.js 24 or later.
 
 ```bash
 npm ci
@@ -132,6 +134,6 @@ npm test
 npm run build
 ```
 
-Edytowanie kodu źródłowego nie aktualizuje zainstalowanego widgetu.
-Po zmianach należy zbudować paczkę, zainstalować ją w Node-RED,
-zrestartować usługę i odświeżyć interfejs.
+Editing the source code does not update an installed widget.
+After making changes, build the package, install it in Node-RED,
+restart the service, and refresh the interface.
