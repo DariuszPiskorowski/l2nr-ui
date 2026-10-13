@@ -5,13 +5,20 @@
 jako instalowalny widget Node-RED Dashboard 2. Zachowujesz własny wygląd
 interfejsu, a dane i komendy przekazujesz przez wiadomości Node-RED.
 
-<p align="center">
-  <img src="docs/images/radiant-dial.png" alt="Radiant Dial po konwersji do Node-RED Dashboard 2: nastawa 19,0°C, temperatura domu 19,8°C i odebrane dane" width="760">
-</p>
-
-<p align="center">
-  <em>Radiant Dial po konwersji do Node-RED Dashboard 2 — działający widget z danymi live ze sterownika pieca.</em>
-</p>
+<table>
+  <tr>
+    <th width="50%">Przed konwersją</th>
+    <th width="50%">Po konwersji — dane live</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/radiant-dial-before.png" alt="Radiant Dial przed konwersją — oryginalny interfejs bez odebranych danych" width="100%"></td>
+    <td><img src="docs/images/radiant-dial-after.png" alt="Radiant Dial po konwersji do Node-RED Dashboard 2 — widget z danymi live ze sterownika pieca" width="100%"></td>
+  </tr>
+  <tr>
+    <td>Oryginalny interfejs aplikacji.</td>
+    <td>Widget Node-RED Dashboard 2 odbierający rzeczywiste dane ze sterownika.</td>
+  </tr>
+</table>
 
 ## Co robi konwerter?
 
