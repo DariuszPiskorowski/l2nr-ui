@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
+import vm from "node:vm";
 
 import { generateDashboard2Package } from "../dist/index.js";
 
@@ -68,7 +69,7 @@ test("generates a display-only Dashboard 2 package around a React component", as
   });
 
   assert.equal(result.packageName, "node-red-dashboard-2-sample-gauge");
-  assert.equal(generatedPackage.version, "0.5.1");
+  assert.equal(generatedPackage.version, "0.5.2");
   assert.equal(syntaxCheck.status, 0, syntaxCheck.stderr || syntaxCheck.stdout);
   assert.equal(generatedPackage["node-red"].nodes["ui-sample-gauge"], "nodes/ui-sample-gauge.js");
   assert.equal(
@@ -151,7 +152,45 @@ test("generates an interactive Dashboard 2 package with a payload output", async
   assert.match(wrapper, /storageKey: "l2nr-ui:" \+ this\.id/);
   assert.match(
     wrapper,
-    /this\.\$socket\.emit\("widget-action", this\.id, \{ payload \}\)/
+    /this\.\$socket\.emit\("widget-action", this\.id, message\)/
   );
 });
 
+
+// Execute the generated bridge, rather than only checking for source strings.
+test("bridge preserves the configured topic and a settings-panel override", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "l2nr-topics-"));
+  await mkdir(path.join(root, "src"));
+  await writeFile(path.join(root, "src", "Panel.tsx"), "export default function Panel() { return null; }");
+  await writeFile(path.join(root, "l2nr-ui.manifest.json"), JSON.stringify({
+    schemaVersion: 1, name: "topic-panel", label: "Panel", component: "src/Panel.tsx",
+    dashboard: { width: 6, height: 8 }, input: { source: "msg.payload", topic: "Heating/Control/state" },
+    output: { target: "msg.payload", topic: "Heating/Control/set" }
+  }));
+  const result = await generateDashboard2Package(root, path.join(root, "out"));
+  const wrapper = await readFile(path.join(result.packageDirectory, "ui/components/UiTopicPanel.vue"), "utf8");
+  const emitted = [];
+  const source = wrapper.split("<script>")[1].split("</script>")[0]
+    .replace(/^import .*;$/gm, "").replace("export default", "globalThis.widget =");
+  const sandbox = { sourceCss: "", markRaw: v => v, toRaw: v => v };
+  vm.runInNewContext(source, sandbox);
+  const context = { id: "panel1", $socket: { emit: (...args) => emitted.push(args) } };
+  const payload = { setpoint: 19.5, mode: "normal" };
+  sandbox.widget.methods.sendPayload.call(context, payload);
+  sandbox.widget.methods.sendPayload.call(context, payload, { topic: "Other/set" });
+  assert.equal(emitted[0][2].topic, "Heating/Control/set");
+  assert.equal(emitted[1][2].topic, "Other/set");
+  assert.equal(emitted[1][2].payload, payload);
+  const runtime = await readFile(path.join(result.packageDirectory, "nodes/ui-topic-panel.js"), "utf8");
+  let Constructor, registered;
+  const RED = { nodes: {
+    createNode() {}, getNode() { return { getBase() { return {}; }, register(node, config, events) { registered = { config, events }; } }; },
+    registerType(type, ctor) { Constructor = ctor; }
+  } };
+  const scope = { module: { exports: {} } };
+  vm.runInNewContext(runtime, scope);
+  scope.module.exports(RED);
+  new Constructor({ group: "group1" });
+  assert.equal(registered.config.topicType, "msg");
+  assert.equal(registered.config.topic, "topic", "Dashboard must evaluate the topic from the action message");
+});

@@ -56,6 +56,11 @@
       "properties": {
         "source": {
           "const": "msg.payload"
+        },
+        "topic": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^+#\\u0000]+$"
         }
       }
     },
@@ -70,6 +75,11 @@
           "properties": {
             "target": {
               "const": "msg.payload"
+            },
+            "topic": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[^+#\\u0000]+$"
             }
           }
         },

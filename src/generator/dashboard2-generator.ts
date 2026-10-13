@@ -99,7 +99,7 @@ function renderPackageJson(
   return JSON.stringify(
     {
       name: packageName,
-      version: "0.5.1",
+      version: "0.5.2",
       description: "Generated Node-RED Dashboard 2 widget",
       license: "MIT",
       main: "nodes/" + nodeType + ".js",
@@ -157,6 +157,8 @@ function renderRuntime(nodeType: string, spec: UiNodeSpec): string {
     "    }",
     "",
     "    const base = group.getBase();",
+    // Dashboard's action handler evaluates config.topic and otherwise clears msg.topic.
+    spec.output === null ? "" : "    config.topic = \"topic\";\n    config.topicType = \"msg\";",
     "    const events = {",
     spec.output === null ? "" : "      onAction: true,",
     "      onInput: function (msg, send, done) {",
@@ -299,6 +301,7 @@ function renderVueWrapper(
     "<script>",
     "import React from \"react\";",
     "import { createRoot } from \"react-dom/client\";",
+    "import { markRaw, toRaw } from \"vue\";",
     "import SourceComponent from " + quote(componentImport) + ";",
     styleLine,
     "",
@@ -369,7 +372,7 @@ function renderVueWrapper(
     "    const root = document.createElement(\"div\");",
     "    root.className = \"l2nr-react-root l2nr-" + escapeJavaScriptFragment(spec.name) + "\";",
     "    shadow.append(style, root);",
-    "    this.reactRoot = createRoot(root);",
+    "    this.reactRoot = markRaw(createRoot(root));",
     "    this.renderReact();",
     "  },",
     "  beforeUnmount() {",
@@ -377,15 +380,15 @@ function renderVueWrapper(
     "  },",
     "  methods: {",
     "    onInput(message) {",
-    "      this.latestMessage = message;",
+    "      this.latestMessage = message && typeof message === \"object\" ? markRaw(toRaw(message)) : message;",
     "      this.renderReact();",
     "    },",
     "    onLoad(message) {",
-    "      this.latestMessage = message;",
+    "      this.latestMessage = message && typeof message === \"object\" ? markRaw(toRaw(message)) : message;",
     "      this.renderReact();",
     "    },",
     interactive
-      ? "    sendPayload(payload) {\n      this.$socket.emit(\"widget-action\", this.id, { payload });\n    },"
+      ? "    sendPayload(payload, metadata = {}) {\n      const message = { payload };\n      const topic = metadata.topic ?? " + quote(spec.output?.topic ?? "") + ";\n      if (typeof topic === \"string\" && topic.trim()) message.topic = topic.trim();\n      this.$socket.emit(\"widget-action\", this.id, message);\n    },"
       : "",
     "    renderReact() {",
     "      if (!this.reactRoot) return;",
@@ -417,6 +420,8 @@ function renderVueWrapper(
     "        max,",
     "        label: componentLabel,",
     "        nodeId: this.id,",
+    "        inputTopic: " + quote(spec.input.topic ?? "") + ",",
+    "        outputTopic: " + quote(spec.output?.topic ?? "") + ",",
     "        storageKey: \"l2nr-ui:\" + this.id",
     "      };",
     interactive

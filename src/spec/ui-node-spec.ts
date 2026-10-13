@@ -20,10 +20,12 @@ export interface UiNodeSpec {
   };
   input: {
     source: "msg.payload";
+    topic?: string;
   };
   display?: UiDisplaySpec;
   output: {
     target: "msg.payload";
+    topic?: string;
   } | null;
 }
 
@@ -55,6 +57,13 @@ export function assertUiNodeSpec(value: unknown): asserts value is UiNodeSpec {
 
   if (candidate.input?.source !== "msg.payload") {
     throw new TypeError('input.source must be "msg.payload"');
+  }
+
+  for (const direction of ["input", "output"] as const) {
+    const topic = candidate[direction]?.topic;
+    if (topic !== undefined && (typeof topic !== "string" || !topic.trim() || /[+#\u0000]/.test(topic))) {
+      throw new TypeError(direction + ".topic must be a non-empty exact topic");
+    }
   }
 
   if (candidate.display !== undefined) {
@@ -100,3 +109,4 @@ export function assertUiNodeSpec(value: unknown): asserts value is UiNodeSpec {
     throw new TypeError('output must be null or target "msg.payload"');
   }
 }
+
